@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa de Plantas - Plant Dictionary</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .search-section {
+            padding: 2rem;
+            background-color: var(--light-green);
+            text-align: center;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .search-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .results-section {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .plant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .plant-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plant-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .plant-image-container {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .plant-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .plant-card:hover .plant-image {
+            transform: scale(1.05);
+        }
+
+        .plant-info {
+            padding: 1.5rem;
+            flex: 1;
+        }
+
+        .plant-info h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .plant-info p {
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .plant-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .plant-tag {
+            background-color: var(--light-green);
+            color: var(--primary-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .filters-section {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .filter-group select {
+            padding: 0.5rem;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-color);
+        }
+
+        .plant-difficulty {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .difficulty-dots {
+            display: flex;
+            gap: 0.2rem;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+        }
+
+        .dot.filled {
+            background-color: var(--primary-color);
+        }
+
+        .watering-info {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .planting-method {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .planting-method-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .planting-method-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .planting-method-content {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: var(--light-green);
+            border-radius: 4px;
+        }
+
+        .planting-method-content.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <i class="fas fa-leaf"></i>
+                <h1>Plant Dictionary</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#home">Início</a></li>
+                <li><a href="plants.html">Plantas</a></li>
+                <li><a href="calendar.html">Calendário</a></li>
+                <li><a href="#knowledge">Conhecimento</a></li>
+                <li><a href="#login" class="login-btn">Entrar</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="search-section">
+            <div class="search-container">
+                <h2>Encontre sua Planta Ideal</h2>
+                <p>Pesquise por nome, tipo ou características específicas</p>
+                <form class="search-form" id="plantSearchForm">
+                    <input type="text" class="search-input" placeholder="Digite o nome da planta..." id="plantSearch">
+                    <button type="submit" class="search-button">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </form>
+                <div class="filters-section">
+                    <h3>Filtros</h3>
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label for="plantType">Tipo de Planta</label>
+                            <select id="plantType">
+                                <option value="">Todos</option>
+                                <option value="fruteira">Fruteira</option>
+                                <option value="medicinal">Medicinal</option>
+                                <option value="aromática">Aromática</option>
+                                <option value="ornamental">Ornamental</option>
+                                <option value="hortaliça">Hortaliça</option>
+                                <option value="suculenta">Suculenta</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="difficulty">Dificuldade</label>
+                            <select id="difficulty">
+                                <option value="">Todas</option>
+                                <option value="1">Fácil</option>
+                                <option value="2">Médio</option>
+                                <option value="3">Difícil</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="light">Luminosidade</label>
+                            <select id="light">
+                                <option value="">Todas</option>
+                                <option value="sol">Sol Pleno</option>
+                                <option value="sombra">Sombra</option>
+                                <option value="meia-sombra">Meia Sombra</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="results-section">
+            <div class="plant-grid" id="plantResults">
+                <!-- Exemplos de plantas -->
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/echeveria.jpg" alt="Echeveria" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Echeveria</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Planta suculenta de fácil cultivo, ideal para iniciantes. Requer pouca água e muita luz solar.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-1">Ver Método de Plantio</button>
+                            <div id="planting-method-1" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por folhas ou mudas<br>
+                                • Solo: Mistura de areia e terra vegetal<br>
+                                • Vaso: Com furos para drenagem<br>
+                                • Época: Primavera e verão
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: 1 vez por semana, preferencialmente pela manhã</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Suculenta</span>
+                            <span class="plant-tag">Sol Pleno</span>
+                            <span class="plant-tag">Fácil</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/orquidea-phalaenopsis.jpg" alt="Orquídea Phalaenopsis" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Orquídea Phalaenopsis</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Orquídea popular conhecida por suas flores duradouras. Prefere ambiente úmido e meia sombra.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-2">Ver Método de Plantio</button>
+                            <div id="planting-method-2" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por keikis (mudas)<br>
+                                • Substrato: Casca de pinus e fibra de coco<br>
+                                • Vaso: Transparente para observar raízes<br>
+                                • Época: Após floração
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: 2 vezes por semana, sempre no início da manhã</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Ornamental</span>
+                            <span class="plant-tag">Meia Sombra</span>
+                            <span class="plant-tag">Médio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/manjericao.jpg" alt="Manjericão" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Manjericão</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Erva aromática e medicinal muito utilizada na culinária e para chás. Cresce bem em vasos e precisa de sol direto.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-3">Ver Método de Plantio</button>
+                            <div id="planting-method-3" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por sementes ou estacas<br>
+                                • Solo: Rico em matéria orgânica<br>
+                                • Vaso: Médio a grande<br>
+                                • Época: Primavera
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: Diariamente, preferencialmente no final da tarde</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Erva Aromática</span>
+                            <span class="plant-tag">Erva Medicinal</span>
+                            <span class="plant-tag">Sol Pleno</span>
+                            <span class="plant-tag">Fácil</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/pitangueira.jpg" alt="Pitangueira" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Pitangueira</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Árvore frutífera nativa do Brasil, produz frutos saborosos e ricos em vitamina C. Pode ser cultivada em vasos grandes.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-4">Ver Método de Plantio</button>
+                            <div id="planting-method-4" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por sementes ou mudas<br>
+                                • Solo: Rico em matéria orgânica<br>
+                                • Vaso: Grande (mínimo 40cm)<br>
+                                • Época: Primavera
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: 2-3 vezes por semana, sempre pela manhã</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Fruteira</span>
+                            <span class="plant-tag">Sol Pleno</span>
+                            <span class="plant-tag">Médio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/boldo.jpg" alt="Boldo" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Boldo</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Planta medicinal conhecida por suas propriedades digestivas. Suas folhas são usadas para fazer chá.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-5">Ver Método de Plantio</button>
+                            <div id="planting-method-5" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por sementes ou estacas<br>
+                                • Solo: Bem drenado e fértil<br>
+                                • Vaso: Médio a grande<br>
+                                • Época: Primavera
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: 2-3 vezes por semana, preferencialmente no início da manhã</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Erva Medicinal</span>
+                            <span class="plant-tag">Meia Sombra</span>
+                            <span class="plant-tag">Fácil</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/samambaia-americana.jpg" alt="Samambaia Americana" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Samambaia Americana</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Planta ornamental que adiciona um toque tropical ao ambiente. Prefere ambientes úmidos e sombreados.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-6">Ver Método de Plantio</button>
+                            <div id="planting-method-6" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por divisão de touceira<br>
+                                • Solo: Rico em matéria orgânica<br>
+                                • Vaso: Médio com boa drenagem<br>
+                                • Época: Primavera
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: 2-3 vezes por semana, mantendo o solo sempre úmido</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Ornamental</span>
+                            <span class="plant-tag">Sombra</span>
+                            <span class="plant-tag">Médio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/hortela.jpg" alt="Hortelã" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Hortelã</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Erva aromática versátil, usada em chás, drinks e culinária. Cresce rapidamente e se espalha facilmente.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-7">Ver Método de Plantio</button>
+                            <div id="planting-method-7" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por estacas ou divisão<br>
+                                • Solo: Rico em matéria orgânica<br>
+                                • Vaso: Separado (evita invasão)<br>
+                                • Época: Primavera e outono
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: Diariamente, mantendo o solo sempre úmido</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Erva Aromática</span>
+                            <span class="plant-tag">Meia Sombra</span>
+                            <span class="plant-tag">Fácil</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/pimenta-biquinho.jpg" alt="Pimenta Biquinho" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Pimenta Biquinho</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Pimenta ornamental e comestível, produz frutos doces e pouco picantes. Ideal para vasos e jardins.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-8">Ver Método de Plantio</button>
+                            <div id="planting-method-8" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por sementes<br>
+                                • Solo: Rico em nutrientes<br>
+                                • Vaso: Médio a grande<br>
+                                • Época: Primavera
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: 2-3 vezes por semana, preferencialmente pela manhã</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Hortaliça</span>
+                            <span class="plant-tag">Sol Pleno</span>
+                            <span class="plant-tag">Médio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/espada-de-sao-jorge.jpg" alt="Espada de São Jorge" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Espada de São Jorge</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Planta resistente e purificadora de ar, ideal para ambientes internos. Tolera bem a falta de água.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-9">Ver Método de Plantio</button>
+                            <div id="planting-method-9" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por divisão de touceira<br>
+                                • Solo: Bem drenado<br>
+                                • Vaso: Qualquer tamanho<br>
+                                • Época: Ano todo
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: 1 vez por semana, deixando o solo secar entre as regas</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Ornamental</span>
+                            <span class="plant-tag">Meia Sombra</span>
+                            <span class="plant-tag">Fácil</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/tomate-cereja.jpg" alt="Tomate Cereja" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Tomate Cereja</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Hortaliça que produz pequenos tomates doces. Pode ser cultivada em vasos ou jardins.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-10">Ver Método de Plantio</button>
+                            <div id="planting-method-10" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por sementes<br>
+                                • Solo: Rico em nutrientes<br>
+                                • Vaso: Grande (mínimo 30cm)<br>
+                                • Época: Primavera e verão
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: Diariamente, evitando molhar as folhas</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Hortaliça</span>
+                            <span class="plant-tag">Sol Pleno</span>
+                            <span class="plant-tag">Médio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/babosa.jpg" alt="Babosa" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Babosa</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Planta medicinal conhecida por suas propriedades cicatrizantes. Suas folhas contêm gel com múltiplos benefícios.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-11">Ver Método de Plantio</button>
+                            <div id="planting-method-11" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por mudas laterais<br>
+                                • Solo: Arenoso e bem drenado<br>
+                                • Vaso: Médio com drenagem<br>
+                                • Época: Primavera e verão
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: 1 vez por semana, deixando o solo secar completamente</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Medicinal</span>
+                            <span class="plant-tag">Sol Pleno</span>
+                            <span class="plant-tag">Fácil</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/lavanda.jpg" alt="Lavanda" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Lavanda</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot filled"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <p>Planta aromática com flores perfumadas, usada em chás e produtos de beleza. Prefere clima seco.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-12">Ver Método de Plantio</button>
+                            <div id="planting-method-12" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por sementes ou estacas<br>
+                                • Solo: Alcalino e bem drenado<br>
+                                • Vaso: Médio a grande<br>
+                                • Época: Outono e primavera
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: 2 vezes por semana, evitando excesso de água</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Aromática</span>
+                            <span class="plant-tag">Sol Pleno</span>
+                            <span class="plant-tag">Médio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plant-card">
+                    <div class="plant-image-container">
+                        <img src="images/morango.jpg" alt="Morango" class="plant-image" loading="lazy">
+                    </div>
+                    <div class="plant-info">
+                        <h3>Morango</h3>
+                        <div class="plant-difficulty">
+                            <span>Dificuldade:</span>
+                            <div class="difficulty-dots">
+                                <div class="dot filled"></div>
+                                <div class="dot filled"></div>
+                                <div class="dot filled"></div>
+                            </div>
+                        </div>
+                        <p>Fruta deliciosa que pode ser cultivada em vasos. Produz frutos durante a primavera e verão.</p>
+                        <p class="planting-method">
+                            <button type="button" class="planting-method-button" data-target="planting-method-13">Ver Método de Plantio</button>
+                            <div id="planting-method-13" class="planting-method-content">
+                                <strong>Método de Plantio:</strong><br>
+                                • Propagação por mudas ou estolhos<br>
+                                • Solo: Ácido e rico em matéria orgânica<br>
+                                • Vaso: Grande (mínimo 30cm)<br>
+                                • Época: Outono e inverno
+                            </div>
+                        </p>
+                        <p class="watering-info"><i class="fas fa-tint"></i> Regar: Diariamente, mantendo o solo úmido mas não encharcado</p>
+                        <div class="plant-tags">
+                            <span class="plant-tag">Fruteira</span>
+                            <span class="plant-tag">Sol Pleno</span>
+                            <span class="plant-tag">Difícil</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Plant Dictionary</h3>
+                <p>Seu guia para o cultivo perfeito</p>
+            </div>
+            <div class="footer-section">
+                <h3>Links Úteis</h3>
+                <ul>
+                    <li><a href="#about">Sobre</a></li>
+                    <li><a href="#contact">Contato</a></li>
+                    <li><a href="#privacy">Privacidade</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Plant Dictionary. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM carregado, configurando botões...');
+
+            // Função para lidar com a pesquisa de plantas
+            document.getElementById('plantSearchForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const searchTerm = document.getElementById('plantSearch').value.toLowerCase();
+                const plantType = document.getElementById('plantType').value;
+                const difficulty = document.getElementById('difficulty').value;
+                const light = document.getElementById('light').value;
+
+                // Aqui você pode implementar a lógica de filtragem real
+                console.log('Pesquisando por:', {
+                    termo: searchTerm,
+                    tipo: plantType,
+                    dificuldade: difficulty,
+                    luminosidade: light
+                });
+
+                // Exemplo de filtragem simples
+                const plantCards = document.querySelectorAll('.plant-card');
+                plantCards.forEach(card => {
+                    const cardText = card.textContent.toLowerCase();
+                    const cardType = card.querySelector('.plant-tag').textContent.toLowerCase();
+                    const cardDifficulty = card.querySelectorAll('.dot.filled').length;
+                    const cardLight = Array.from(card.querySelectorAll('.plant-tag'))
+                        .find(tag => tag.textContent.includes('Sol') || tag.textContent.includes('Sombra'))?.textContent;
+
+                    const matchesSearch = searchTerm === '' || cardText.includes(searchTerm);
+                    const matchesType = plantType === '' || cardType.includes(plantType);
+                    const matchesDifficulty = difficulty === '' || cardDifficulty === parseInt(difficulty);
+                    const matchesLight = light === '' || (cardLight && cardLight.toLowerCase().replace(' ', '-').includes(light.toLowerCase()));
+
+                    card.style.display = matchesSearch && matchesType && matchesDifficulty && matchesLight ? 'block' : 'none';
+                });
+            });
+
+            // Adicionar listeners para os filtros
+            document.querySelectorAll('.filter-group select').forEach(select => {
+                select.addEventListener('change', () => {
+                    document.getElementById('plantSearchForm').dispatchEvent(new Event('submit'));
+                });
+            });
+
+            // Adicionar listeners para os botões de método de plantio
+            const buttons = document.querySelectorAll('.planting-method-button');
+            console.log('Botões encontrados:', buttons.length);
+
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('data-target');
+                    const content = document.getElementById(targetId);
+                    
+                    if (content) {
+                        content.classList.toggle('show');
+                        this.textContent = content.classList.contains('show') ? 'Ocultar Método de Plantio' : 'Ver Método de Plantio';
+                        console.log('Conteúdo alterado:', content.classList.contains('show'));
+                    } else {
+                        console.error('Elemento de conteúdo não encontrado para o ID:', targetId);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 
